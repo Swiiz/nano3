@@ -5,5 +5,9 @@ edition = "2021"
 
 [dependencies]
 derive = { path = "../derive" }
-postcard = "1.0.10"
+postcard = { version = "1.0.10", features = ["alloc"] }
 serde = "1.0.209"
+
+[features]
+embedded = []
+default = ["embedded"]

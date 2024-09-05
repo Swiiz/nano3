@@ -4,11 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-nano_api = { path = "../api" }
+nano_api = { path = "../api", default-features = false}
 
 anyhow = "1.0.86"
 serde = "1.0.209"
-postcard = {version = "1.0.10", features = ["alloc"] }
 wasmtime = "24.0.0"
 
 [profile.release] ## HEAVY OPTIMIZATION

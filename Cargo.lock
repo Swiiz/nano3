@@ -778,7 +778,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "nano_api",
- "postcard",
  "serde",
  "wasmtime",
 ]
