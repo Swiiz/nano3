@@ -1,0 +1,9 @@
+[package]
+name = "nano_api"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+derive = { path = "../derive" }
+postcard = "1.0.10"
+serde = "1.0.209"

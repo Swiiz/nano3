@@ -1,0 +1,19 @@
+[package]
+name = "runner"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+nano_api = { path = "../api" }
+
+anyhow = "1.0.86"
+serde = "1.0.209"
+postcard = {version = "1.0.10", features = ["alloc"] }
+wasmtime = "24.0.0"
+
+[profile.release] ## HEAVY OPTIMIZATION
+lto = "fat"
+codegen-units = 1
+## Also after compilation via the Rust compiler it is recommended
+## to apply Binaryen's wasm-opt on the resulting Wasm binary as
+## a post-optimization routine.
