@@ -24,11 +24,46 @@ fn handle_func(func: ItemFn) -> TokenStream {
         #[no_mangle]
         pub fn #shadows_ident(len: u32) {
            let value = unsafe { core::slice::from_raw_parts(1 as _, len as _) };
-            let event: Event = ::nano_api::deserialize(value).expect("Failed to deserialize argument");
+            let event: ::nano_api::event::RawEvent = ::nano_api::deserialize(value).expect("Failed to deserialize argument");
 
             #func
-            #ident(event);
+            #ident(&event);
         }
     };
     ret.into()
+}
+
+#[proc_macro_attribute]
+pub fn wasm_event(_attr: TokenStream, input: TokenStream) -> TokenStream {
+    let tokens2 = proc_macro2::TokenStream::from(input);
+    let parse2 = syn::parse2::<Item>(tokens2.clone()).expect("Failed to parse tokens");
+
+    match parse2 {
+        Item::Struct(s) => {
+            let ident = s.ident;
+            let _crate = if &std::env::var("CARGO_PKG_NAME").unwrap() == "nano_api" {
+                Ident::new("crate", Span::call_site())
+            } else {
+                Ident::new("nano_api", Span::call_site())
+            };
+            let ret = quote! {
+                #[derive(#_crate ::Serialize, #_crate ::Deserialize)]
+                #tokens2
+
+                impl #_crate ::event::AnyEvent for #ident {
+                    fn unique_id() -> &'static str {
+                        concat!(
+                            env!("CARGO_PKG_NAME"),
+                            "@",
+                            module_path!(),
+                            "::",
+                            stringify!(#ident)
+                        )
+                    }
+                }
+            };
+            ret.into()
+        }
+        _ => panic!("Only structs are supported"),
+    }
 }

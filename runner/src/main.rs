@@ -1,7 +1,7 @@
 use std::{any::type_name, collections::HashMap, fs, mem::transmute, time::Duration};
 
 use anyhow::Result;
-use nano_api::{deserialize, serialize, Event};
+use nano_api::{deserialize, event::AnyEvent, event::RawEvent, serialize, OnStart};
 use serde::{de::DeserializeOwned, Serialize};
 use wasmtime::*;
 
@@ -29,7 +29,7 @@ fn main() -> Result<()> {
 
     let hostfn_print = Func::wrap(&mut store, |c: Caller<HostState>, ptr: u32, len: u32| {
         func_from_wasm(&c.data().memory, ptr, len, |msg: String| {
-            println!("WASM: {}", msg);
+            print!("WASM: {}", msg);
         })
     });
 
@@ -54,8 +54,8 @@ fn main() -> Result<()> {
 
     emit_event(
         &modules,
-        Event {
-            name: "Hello world!".to_string(),
+        OnStart {
+            host: "Nano3".to_owned(),
         },
         &mut store,
     )?;
@@ -79,7 +79,7 @@ pub fn func_from_wasm<T: DeserializeOwned>(
     f(arg);
 }
 
-pub fn emit_event<T>(
+pub fn emit_event<T: AnyEvent>(
     modules: &HashMap<String, Instance>,
     event: T,
     mut store: &mut Store<HostState>,
@@ -87,7 +87,7 @@ pub fn emit_event<T>(
 where
     T: serde::Serialize,
 {
-    let bytes = serialize(&event).unwrap();
+    let bytes = serialize(&RawEvent::from_data(event)).expect("Failed to serialize argument");
 
     // Because of default 64kb dynamic memory guard
     if bytes.len() >= 64_000 {
